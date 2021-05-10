@@ -1,0 +1,15 @@
+{
+  "name": "tobix.github.io",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "eleventy",
+    "dev": "eleventy --serve"
+  },
+  "repository": "https://github.com/TobiX/tobix.github.io.git",
+  "author": "Tobias Gruetzmacher <tobias-git@23.gs>",
+  "license": "MIT",
+  "devDependencies": {
+    "@11ty/eleventy": "^0.12.1"
+  }
+}
