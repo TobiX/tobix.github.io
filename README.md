@@ -7,4 +7,4 @@ permalink: /
 
 Things here:
 
-- [Jenkins Neo2 Theme](https://tobix.github.io/jenkins-neo2-theme/)
+- Nothing, currently
