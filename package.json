@@ -1,7 +1,7 @@
 {
   "name": "tobix.github.io",
   "version": "1.0.0",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "npx @11ty/eleventy",
     "dev": "npx @11ty/eleventy --serve"
