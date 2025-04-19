@@ -152,12 +152,11 @@ function calculateValidTeams() {
         return result;
     }
 
-    // Generate all possible teams (3-6 characters each)
+    // Generate all possible teams (3-5 persons each)
     const allTeams = [
         combinations(selectedCharacters, 3),
         combinations(selectedCharacters, 4),
         combinations(selectedCharacters, 5),
-        combinations(selectedCharacters, 6)
     ].flat();
 
     allTeams.forEach(team => {
