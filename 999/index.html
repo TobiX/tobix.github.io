@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>999 Calculator</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script>
+const characters = [
+  { name: "Ace", number: 1 },
+  { name: "Snake", number: 2 },
+  { name: "Santa", number: 3 },
+  { name: "Clover", number: 4 },
+  { name: "Junpei", number: 5 },
+  { name: "June (Akane)", number: 6 },
+  { name: "Seven", number: 7 },
+  { name: "Lotus", number: 8 },
+  { name: "9th Man", number: 9 },
+];
+
+addEventListener("DOMContentLoaded", (event) => {
+    buildCharCheckboxes();
+    buildDoorTabs();
+    calculateAllValidTeams();
+});
+
+function handleCheckboxClick(event) {
+    if (event.target.tagName === "INPUT") {
+        calculateAllValidTeams();
+    }
+}
+
+function buildCharCheckboxes() {
+    const charList = document.getElementById("characters");
+    characters.forEach((char) => {
+        const charEntry = document.createElement("p");
+        charEntry.innerHTML = `
+            <label><input type="checkbox" value="${char.number}" checked> ${char.name} (${char.number})</label>
+        `;
+        charList.appendChild(charEntry);
+    });
+    charList.addEventListener("click", handleCheckboxClick);
+}
+
+function handleTabClick(event) {
+    if (event.target.tagName !== "A") {
+        return;
+    }
+    
+    event.preventDefault(); // Prevent the default link behavior
+
+    // Deactivate all tabs and hide all panels
+    document.querySelectorAll("#doorTabs a").forEach((tab) => {
+        tab.classList.remove("border-blue-500", "text-blue-500");
+        tab.classList.add("text-gray-500", "border-transparent");
+        tab.setAttribute("aria-selected", "false");
+    });
+    document.querySelectorAll("#doorTabContent > div").forEach((panel) => {
+    panel.classList.add("hidden");
+    });
+
+    // Activate the clicked tab and show its panel
+    const selectedTab = event.target;
+    const doorNumber = selectedTab.dataset.tab;
+    selectedTab.classList.remove("text-gray-500", "border-transparent");
+    selectedTab.classList.add("border-blue-500", "text-blue-500");
+    selectedTab.setAttribute("aria-selected", "true");
+    document.getElementById(`door${doorNumber}`).classList.remove("hidden");
+}
+
+function buildDoorTabs() {
+    const doorTabs = document.getElementById("doorTabs");
+    const doorTabContent = document.getElementById("doorTabContent");
+
+    for (let doornum = 1; doornum <= 9; doornum++) {
+        const tabButton = document.createElement("li");
+        tabButton.innerHTML = `
+            <a
+            href="#"
+            class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 ${doornum === 1 ? 'border-blue-500 text-blue-500' : 'text-gray-500'}"
+            data-tab="${doornum}"
+            role="tab"
+            aria-controls="door${doornum}"
+            aria-selected="${doornum === 1 ? 'true' : 'false'}"
+            >Door ${doornum}</a>
+        `;
+        doorTabs.appendChild(tabButton);
+
+        // Create Tab Panel
+        const tabPanel = document.createElement("div");
+        tabPanel.id = `door${doornum}`;
+        tabPanel.setAttribute("role", "tabpanel");
+        tabPanel.setAttribute("aria-labelledby", `door${doornum}-tab`);
+        tabPanel.classList.add("p-4");
+        if (doornum !== 1) {
+            tabPanel.classList.add("hidden"); // Hide all except the first tab
+        }
+        tabPanel.innerHTML = `<ul id="door${doornum}-results"></ul>`;
+        tabPanel.classList.add("flex", "flex-wrap", "gap-4");
+        doorTabContent.appendChild(tabPanel);
+    }
+
+    doorTabs.addEventListener("click", handleTabClick);
+}
+
+function calculateAllValidTeams() {
+    const validTeams = calculateValidTeams();
+    for (let doornum = 1; doornum <= 9; doornum++) {
+        updateDoor(doornum, validTeams.filter((team) => team.digitalRoot === doornum));
+    }
+}
+
+function digitalRoot(team) {
+    let digitalRoot = team.reduce((acc, val) => acc + val, 0);
+
+    while (digitalRoot >= 10) {
+        let tempSum = 0;
+        String(digitalRoot).split('').forEach(digit => {
+            tempSum += parseInt(digit);
+        });
+        digitalRoot = tempSum;
+    }
+    return digitalRoot;
+}
+
+function calculateValidTeams() {
+    const selectedCharacters = Array.from(
+        document.querySelectorAll('input[type="checkbox"]:checked')
+    ).map((checkbox) => parseInt(checkbox.value));
+
+    const validTeams = [];
+
+    function combinations(array, k) {
+        const result = [];
+        if (k > array.length || k <= 0) {
+            return result;
+        }
+        if (k === array.length) {
+            result.push(array);
+            return result;
+        }
+        if (k === 1) {
+            for (let i = 0; i < array.length; i++) {
+                result.push([array[i]]);
+            }
+            return result;
+        }
+        for (let i = 0; i <= array.length - k; i++) {
+            const subCombinations = combinations(array.slice(i + 1), k - 1);
+            for (let j = 0; j < subCombinations.length; j++) {
+                result.push([array[i]].concat(subCombinations[j]));
+            }
+        }
+        return result;
+    }
+
+    // Generate all possible teams (3-6 characters each)
+    const allTeams = [
+        combinations(selectedCharacters, 3),
+        combinations(selectedCharacters, 4),
+        combinations(selectedCharacters, 5),
+        combinations(selectedCharacters, 6)
+    ].flat();
+
+    allTeams.forEach(team => {
+        validTeams.push({team: team, digitalRoot: digitalRoot(team)});
+    });
+    
+    return validTeams;
+}
+
+function updateDoor(doorNumber, validTeams) {
+    const resultsList = document.getElementById(`door${doorNumber}-results`);
+    resultsList.innerHTML = "";
+
+    if (validTeams.length === 0) {
+        const listItem = document.createElement("li");
+        listItem.textContent = "No valid teams for this door.";
+        resultsList.appendChild(listItem);
+        return;
+    }
+
+    validTeams.forEach(teamData => {
+        const listItem = document.createElement("li");
+        listItem.textContent = `${teamData.team.join(', ')}`;
+        listItem.classList.add("inline-block", "bg-blue-500", "rounded-full", "px-3", "py-1", "text-sm", "text-gray-700", "m-2");
+        resultsList.appendChild(listItem);
+    });
+}
+
+</script>
+</head>
+<body>
+    <h1 class="text-xl text-center">999 Team Builder</h1>
+<div class="container mx-auto p-4">
+    <div class=" justify-items-center">
+    </div>
+    <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2">Select Characters:</label>
+        <div class="grid grid-cols-3 gap-2" id="characters"></div>
+        </div>
+    </div>
+
+    <div class="container mx-auto p-4">
+        <div class="border-b border-gray-200">
+            <ul class="flex flex-wrap" id="doorTabs" role="tablist">
+            <!-- Tab buttons will be dynamically added here -->
+            </ul>
+        </div>
+
+        <div id="doorTabContent">
+            <!-- Tab panels will be dynamically added here -->
+        </div>
+    </div>
+</div>
+
