@@ -14,17 +14,20 @@
 
 	<!-- Rom Patcher JS initialization -->
 	<script type="text/javascript">
-		window.addEventListener('load', function (evt) {
+		window.addEventListener('load', event => {
 			try {
 				RomPatcherWeb.initialize({
 					language: 'en',
 					requireValidation: true,
 					allowDropFiles: true,
 					onloadrom: function (romFile) {
-						const crc32 = romFile.hashCRC32();
-						// Old fix
-						if (crc32 ===  0x83e6ca55)
+						// Old fix changed a jump from 0x75 0x12 (jne 0x14) to 0xEB 0x12 (jmp 0x12)
+						const jumpByte = romFile.slice(0x019B317E, 1).readU8();
+						if (jumpByte === 0xEB) {
 							RomPatcherWeb.pickEmbededFile('mh-update-fix.xdelta');
+						} else {
+							RomPatcherWeb.pickEmbededFile('mh-fix-call.xdelta');
+						}
 					},
 				}, {
 				file: 'patches.zip',
@@ -32,21 +35,18 @@
 					{
 						file: 'mh-fix-call.xdelta',
 						name: 'Fix session encryption for Proton/Wine',
-						inputCrc32: 0x5d226345,
 						inputMd5: '60255e92c70326e6443439cf7d08e197',
 						outputName: 'MarvelHeroesOmega.linux',
 					},
 					{
 						file: 'mh-update-fix.xdelta',
 						name: 'Update old fix to new fix',
-						inputCrc32: 0x83e6ca55,
-						inputMd5: '91c11f293024b80004003b0d1f0c63c4',
+						inputMd5: '501394749f68365503593682a9b2cb6c',
 						outputName: 'MarvelHeroesOmega.linux',
 					},
 					{
 						file: 'mh-no-verify.xdelta',
 						name: 'Remove session validation (old)',
-						inputCrc32: 0x5d226345,
 						inputMd5: '60255e92c70326e6443439cf7d08e197',
 						outputName: 'MarvelHeroesOmega.linux',
 					},
