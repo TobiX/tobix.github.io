@@ -8,7 +8,7 @@
 
 
 /* Rom Patcher JS - container */
-#rom-patcher-container {
+.container {
 	-moz-user-select: none;
 	-webkit-user-select: none;
 	-ms-user-select: none;
@@ -472,7 +472,7 @@
 
 /* responsive */
 @media only screen and (max-width:641px) {
-	#rom-patcher-container {
+	.container {
 		font-size: 14px
 	}
 
